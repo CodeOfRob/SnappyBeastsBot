@@ -44,7 +44,6 @@ def main():
         out = "<b>online lifeless retards</b>:\n"
 
         for client in clients:
-            print(client)
             if (int(client["client_type"]) == 0):
                 out += f"- {client['client_nickname']}\n"
 
