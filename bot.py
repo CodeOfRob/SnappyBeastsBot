@@ -27,8 +27,8 @@ def main():
     comm_help = BotCommand("help", "I will show you a lists of services I provide.")
     commands.append(comm_help)
 
-    comm_get_online_players = BotCommand("get_online_players", "I will show you a list of retards who are online.")
-    commands.append(comm_get_online_players)
+    comm_get_online_clients = BotCommand("get_online_clients", "I will show you a list of retards who are online.")
+    commands.append(comm_get_online_clients)
 
     bot.set_my_commands(commands)
     
@@ -37,7 +37,7 @@ def main():
     def on_message(msg):
         bot.reply_to(msg, "Chat not trusted")
     
-    @bot.message_handler(commands=[comm_get_online_players.command])
+    @bot.message_handler(commands=[comm_get_online_clients.command])
     def on_get_online_clients(msg):
         clients = get_online_clients()
 
@@ -49,6 +49,14 @@ def main():
 
         bot.send_message(msg.chat.id, out, parse_mode="html")
 
+    @bot.message_handler(commands=[comm_help.command])
+    def on_help(msg):
+        out = "<b>These are the services I provide:</b>\n"
+        for command in commands:
+            out += f"- /{command.command}: {command.description}\n"
+        
+        bot.reply_to(msg, out, parse_mode="html")
+        
 
     print("starting bot")
     bot.infinity_polling(logger_level=logging.INFO)
