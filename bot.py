@@ -1,18 +1,14 @@
-import json
 import logging
-import telebot
-import dotenv
-import ts3
-import logging
+import random
 
+import dotenv
+import telebot
+import ts3
 from telebot.types import BotCommand
 
 from beerlist import Beerlist
 from constants import COMMANDS_RAW, EMOJI_LIST, PRAISE_LIST, TRUSTED_CHAT_IDS
 
-# SnappyBeasts: -1001398316625
-# Fnace private Chat: 750707743
-TRUSTED_CHAT_IDS = [-1001398316625, 750707743]
 
 def get_online_clients(query_uri):
     conn = ts3.query.TS3ServerConnection(query_uri)
@@ -26,46 +22,30 @@ def get_channel_info(query_uri, cid):
     info = conn.exec_(f"channelinfo", cid=cid).parsed
     return info
 
-def save_beerlist(beerlist):
+def main():
 
     # init env
     env = dotenv.dotenv_values()
     query_uri = env["QUERY_URI"]
 
-def load_beerlist():
+    # init telebot logger
+    telebot.logger.setLevel(logging.INFO)
 
-    f = open("beerlist.json", "r")
-    out = json.loads(f.read())
-    f.close()
-    return out 
-   
-     
-
-def main():
-
+    # init telegram api
     api_key = env["API_KEY"]
     bot = telebot.TeleBot(api_key)
 
-    commands = []
-
-    comm_help = BotCommand("help", "I will show you a lists of services I provide.")
-    commands.append(comm_help)
-
-    comm_get_online_clients = BotCommand("get_online_clients", "I will show you a list of retards who are online.")
-    commands.append(comm_get_online_clients)
-
-    comm_bier = BotCommand("beer", "Tell me you drank a beer.")
-    commands.append(comm_bier)
-
-    comm_spill = BotCommand("spill", "Tell me you spilled a beer")
-    commands.append(comm_spill)
-
-    bot.set_my_commands(commands)
+    # init commands
+    commands = {}
+    for command, details in COMMANDS_RAW.items():
+        comm = BotCommand(details["name"], details["description"])
+        commands[command] = comm
+    bot.set_my_commands(commands.values())
     
+    # init beerlist
+    beerlist = Beerlist("./data/beerlist.json")
 
-    beerlist = load_beerlist()
-
-
+    # commands
     @bot.message_handler(func=lambda msg: msg.chat.id not in TRUSTED_CHAT_IDS)
     def on_message(msg):
         bot.reply_to(msg, "Chat not trusted")
@@ -88,36 +68,23 @@ def main():
 
         bot.send_message(msg.chat.id, out, parse_mode="html")
 
-    @bot.message_handler(commands=[comm_help.command])
+    @bot.message_handler(commands=[commands["help"].command])
     def on_help(msg):
         out = "<b>These are the services I provide:</b>\n"
-        for command in commands:
+        for command in commands.values():
             out += f"- /{command.command}: {command.description}\n"
-        
-        bot.reply_to(msg, out, parse_mode="html")
+        bot.send_message(msg.chat.id, out, parse_mode="html")
 
-    @bot.message_handler(commands=[comm_bier.command])
+    @bot.message_handler(commands=[commands["drink"].command])
     def on_beer(msg):
-        user_id = str(msg.from_user.id)
-        if user_id not in beerlist.keys():
-            beerlist[user_id] = {"user_id": msg.from_user.id, "username": msg.from_user.username, "beer_count": 0}
-        beerlist[user_id]["beer_count"] += 1
-
-        out = "<b>Beerlist:</b>\n"
-
-        for key in beerlist:
-            out += f"{beerlist[key]['username']}: {beerlist[key]['beer_count']}\n"
-
-        bot.reply_to(msg, out, parse_mode="html")
-        save_beerlist(beerlist)
+        beerlist.add_action("drink", msg.from_user.id, msg.from_user.username, 1)
+        bot.send_message(msg.chat.id, str(beerlist), parse_mode="html")
         
-    @bot.message_handler(commands=[comm_spill.command])
+    @bot.message_handler(commands=[commands["spill"].command])
     def on_spill(msg):
-        user_id = str(msg.from_user.id)
-        if user_id not in beerlist.keys():
-            beerlist[user_id] = {"user_id": msg.from_user.id, "username": msg.from_user.username, "beer_count": 0}
-        beerlist[user_id]["beer_count"] -= 1
-
+        beerlist.add_action("spill", msg.from_user.id, msg.from_user.username, 1)
+        bot.send_message(msg.chat.id, str(beerlist), parse_mode="html")
+        
     @bot.message_handler(commands=[commands["praisetheleader"].command])
     def praise_The_Leader(msg):
 
@@ -127,17 +94,7 @@ def main():
         out = f"<b>Praise to be Carlo the {PRAISE_LIST[idx]}!</b> {EMOJI_LIST[emoji_idx]}".upper()
         bot.send_message(msg.chat.id, out, parse_mode="html")
 
-    print("starting bot")
     bot.infinity_polling(logger_level=logging.INFO)
 
-
-
 if __name__ == "__main__":
-
-    global env
-    env = dotenv.dotenv_values()
-
-    logger = telebot.logger
-    telebot.logger.setLevel(logging.INFO)
-
     main()
