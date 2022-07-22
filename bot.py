@@ -7,6 +7,8 @@ import logging
 
 from telebot.types import BotCommand
 
+from beerlist import Beerlist
+from constants import COMMANDS_RAW, EMOJI_LIST, PRAISE_LIST, TRUSTED_CHAT_IDS
 
 # SnappyBeasts: -1001398316625
 # Fnace private Chat: 750707743
@@ -22,9 +24,9 @@ def get_online_clients():
 
 def save_beerlist(beerlist):
 
-    f = open("beerlist.json", "w")
-    f.write(json.dumps(beerlist))
-    f.close()
+    # init env
+    env = dotenv.dotenv_values()
+    query_uri = env["QUERY_URI"]
 
 def load_beerlist():
 

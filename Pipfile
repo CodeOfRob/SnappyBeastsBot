@@ -8,5 +8,3 @@ pytelegrambotapi = "*"
 python-dotenv = "*"
 ts3 = ">=2.0.0b2"
 cryptography = "*"
-
-[dev-packages]

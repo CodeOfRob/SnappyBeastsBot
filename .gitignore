@@ -1,2 +1,5 @@
 .env
 *.lock
+
+/__pycache__/*
+/data/*
