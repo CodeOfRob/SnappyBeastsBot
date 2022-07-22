@@ -118,13 +118,14 @@ def main():
             beerlist[user_id] = {"user_id": msg.from_user.id, "username": msg.from_user.username, "beer_count": 0}
         beerlist[user_id]["beer_count"] -= 1
 
-        out = "<b>Beerlist:</b>\n"
+    @bot.message_handler(commands=[commands["praisetheleader"].command])
+    def praise_The_Leader(msg):
 
-        for key in beerlist:
-            out += f"{beerlist[key]['username']}: {beerlist[key]['beer_count']}\n"
+        idx = random.randint(0, len(PRAISE_LIST))-1
+        emoji_idx = random.randint(0, len(EMOJI_LIST))-1
 
-        bot.reply_to(msg, out, parse_mode="html")
-        save_beerlist(beerlist)
+        out = f"<b>Praise to be Carlo the {PRAISE_LIST[idx]}!</b> {EMOJI_LIST[emoji_idx]}".upper()
+        bot.send_message(msg.chat.id, out, parse_mode="html")
 
     print("starting bot")
     bot.infinity_polling(logger_level=logging.INFO)
