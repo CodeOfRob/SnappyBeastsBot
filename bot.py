@@ -14,13 +14,17 @@ from constants import COMMANDS_RAW, EMOJI_LIST, PRAISE_LIST, TRUSTED_CHAT_IDS
 # Fnace private Chat: 750707743
 TRUSTED_CHAT_IDS = [-1001398316625, 750707743]
 
-
-def get_online_clients():
-    conn = ts3.query.TS3ServerConnection(env["QUERY_URI"])
+def get_online_clients(query_uri):
+    conn = ts3.query.TS3ServerConnection(query_uri)
     conn.exec_("use", port="9995")
     clients = conn.exec_("clientlist").parsed
     return clients
 
+def get_channel_info(query_uri, cid):
+    conn = ts3.query.TS3ServerConnection(query_uri)
+    conn.exec_("use", port="9995")
+    info = conn.exec_(f"channelinfo", cid=cid).parsed
+    return info
 
 def save_beerlist(beerlist):
 
@@ -66,15 +70,21 @@ def main():
     def on_message(msg):
         bot.reply_to(msg, "Chat not trusted")
     
-    @bot.message_handler(commands=[comm_get_online_clients.command])
+    @bot.message_handler(commands=[commands["showonlineclients"].command])
     def on_get_online_clients(msg):
-        clients = get_online_clients()
-
-        out = "<b>online lifeless retards</b>:\n"
-
+        clients = get_online_clients(query_uri)
+        channels = {}
         for client in clients:
-            if (int(client["client_type"]) == 0):
-                out += f"- {client['client_nickname']}\n"
+            channel_name = get_channel_info(query_uri, client["cid"])[0]["channel_name"]
+            if channel_name not in channels:
+                channels[channel_name] = []
+            channels[channel_name].append(client['client_nickname'])
+
+        out = ""
+        for channel_name in channels:
+            out += f"<b>{channel_name}</b>\n"
+            for client in channels[channel_name]:
+                out += f" - {client}\n"
 
         bot.send_message(msg.chat.id, out, parse_mode="html")
 
