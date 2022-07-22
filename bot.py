@@ -55,10 +55,11 @@ def main():
         clients = get_online_clients(query_uri)
         channels = {}
         for client in clients:
-            channel_name = get_channel_info(query_uri, client["cid"])[0]["channel_name"]
-            if channel_name not in channels:
-                channels[channel_name] = []
-            channels[channel_name].append(client['client_nickname'])
+            if (int(client["client_type"]) == 0):
+                channel_name = get_channel_info(query_uri, client["cid"])[0]["channel_name"]
+                if channel_name not in channels:
+                    channels[channel_name] = []
+                channels[channel_name].append(client['client_nickname'])
 
         out = ""
         for channel_name in channels:
