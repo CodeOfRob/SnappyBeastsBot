@@ -64,4 +64,4 @@ class BeerDrinker:
         return self
 
     def __str__(self) -> str:
-        return f"{self.username}: 🍻: {self.beers_drank}, 💦: {self.beers_spilled}" 
+        return f"{self.username}: 🍻: {self.beers_drank}, 💦: {self.beers_spilled}\n" 
