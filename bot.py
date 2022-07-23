@@ -53,6 +53,11 @@ def main():
     @bot.message_handler(commands=[commands["showonlineclients"].command])
     def on_get_online_clients(msg):
         clients = get_online_clients(query_uri)
+
+        if len(clients) == 0:
+            bot.send_message(msg.chat.id, "no clients online", parse_mode="html")
+            return
+
         channels = {}
         for client in clients:
             if (int(client["client_type"]) == 0):
