@@ -1,4 +1,5 @@
 import logging
+import random
 
 import dotenv
 import telebot
@@ -6,7 +7,7 @@ import ts3
 from telebot.types import BotCommand
 
 from beerlist import Beerlist
-from constants import COMMANDS_RAW, TRUSTED_CHAT_IDS
+from constants import COMMANDS_RAW, EMOJI_LIST, PRAISE_LIST, TRUSTED_CHAT_IDS
 
 
 def get_online_clients(query_uri):
